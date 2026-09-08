@@ -23,6 +23,8 @@ module Types
     field :recurring, Boolean, null: false
     field :moved, Boolean, null: false,
           description: "True when this occurrence was rescheduled away from the time its rule would have produced."
+    field :skipped, Boolean, null: false,
+          description: "True only in the admin occurrence list: a cancelled session, shown so it can be restored. Never true on the public calendar."
     field :original_date, GraphQL::Types::ISO8601Date, null: false,
           description: "The local date the recurrence rule produced. Identifies the occurrence even after a move."
 
@@ -39,5 +41,6 @@ module Types
     def price_note = event.price_note
     def recurring = event.recurring?
     def moved = object.moved?
+    def skipped = object.skipped? || false
   end
 end

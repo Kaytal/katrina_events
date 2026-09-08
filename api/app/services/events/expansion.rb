@@ -9,14 +9,18 @@ module Events
 
     class RangeTooLarge < StandardError; end
 
-    def self.call(from:, to:, events: nil)
-      new(from: from, to: to, events: events).call
+    def self.call(from:, to:, events: nil, include_skipped: false)
+      new(from: from, to: to, events: events, include_skipped: include_skipped).call
     end
 
-    def initialize(from:, to:, events: nil)
+    # `include_skipped` is for the admin occurrence list only. A cancelled
+    # session has to be visible somewhere for her to restore it, but it must
+    # never reach the public calendar.
+    def initialize(from:, to:, events: nil, include_skipped: false)
       @from = from
       @to = to
       @events = events
+      @include_skipped = include_skipped
     end
 
     def call
@@ -28,7 +32,7 @@ module Events
 
     private
 
-    attr_reader :from, :to
+    attr_reader :from, :to, :include_skipped
 
     def scope
       base = @events || Event.scheduled
@@ -104,7 +108,21 @@ module Events
     end
 
     def build(event, original_date, local_start, exception)
-      return nil if exception&.skip?
+      return nil if exception&.skip? && !include_skipped
+
+      if exception&.skip?
+        # Reported where the rule would have put it, flagged as cancelled.
+        return nil if local_start.nil?
+
+        return Occurrence.new(
+          event: event,
+          starts_at: local_start,
+          ends_at: local_start + event.duration,
+          original_date: original_date,
+          moved: false,
+          skipped: true
+        )
+      end
 
       if exception&.move?
         return Occurrence.new(
@@ -112,7 +130,8 @@ module Events
           starts_at: exception.starts_at.in_time_zone,
           ends_at: exception.ends_at.in_time_zone,
           original_date: original_date,
-          moved: true
+          moved: true,
+          skipped: false
         )
       end
 
@@ -126,7 +145,8 @@ module Events
         starts_at: local_start,
         ends_at: local_start + event.duration,
         original_date: original_date,
-        moved: false
+        moved: false,
+        skipped: false
       )
     end
   end

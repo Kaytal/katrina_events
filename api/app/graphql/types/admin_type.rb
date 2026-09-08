@@ -16,8 +16,41 @@ module Types
       argument :slug, String, required: true
     end
 
+    field :events, [ Types::EventAdminType ], null: false,
+          description: "Stored events — one row per event, not per occurrence. Newest start first." do
+      argument :include_cancelled, Boolean, required: false, default_value: true
+    end
+
+    field :event, Types::EventAdminType, null: true do
+      argument :id, ID, required: true
+    end
+
+    field :venues, [ Types::VenueType ], null: false
+
+    field :venue, Types::VenueType, null: true do
+      argument :id, ID, required: true
+    end
+
     def pages
       Page.order(:slug)
+    end
+
+    def events(include_cancelled:)
+      scope = Event.all
+      scope = scope.scheduled unless include_cancelled
+      scope.includes(:event_type, :venue).order(starts_at: :desc)
+    end
+
+    def event(id:)
+      Event.includes(:event_type, :venue, :event_exceptions).find(id)
+    end
+
+    def venues
+      Venue.order(:name)
+    end
+
+    def venue(id:)
+      Venue.find(id)
     end
 
     def page(slug:)

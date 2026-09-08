@@ -739,3 +739,214 @@ button:disabled {
   max-width: var(--measure);
   font-size: 0.875rem;
 }
+
+/* --- Event editor --------------------------------------------------------- */
+
+.recurrence {
+  margin: 0 0 2rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1rem 1.25rem 1.25rem;
+  background: var(--paper-raised);
+}
+
+.recurrence legend {
+  padding: 0 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+
+.recurrence .editor-fields {
+  margin-bottom: 0;
+}
+
+select,
+textarea.short {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font: inherit;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+textarea.short {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.interval {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+
+.interval input {
+  width: 4rem;
+  padding: 0.35rem 0.4rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font: inherit;
+}
+
+.weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.9rem;
+}
+
+.day {
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.day.is-on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+/* --- Sessions (per-occurrence) -------------------------------------------- */
+
+.sessions {
+  margin-top: 3rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1.5rem;
+}
+
+.sessions h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+}
+
+.occurrences {
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+
+.occurrences li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.occurrences li.is-skipped {
+  background: #faf6f0;
+}
+
+.occurrence-when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.struck {
+  color: var(--ink-soft);
+  text-decoration: line-through;
+}
+
+.occurrence-note {
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+}
+
+.occurrence-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.move-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0;
+}
+
+.move-form label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.move-form input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.move-form button {
+  margin-top: 0;
+}
+
+/* Text-style buttons for inline actions, so a row is not a wall of chrome. */
+button.link {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+button.link:hover:not(:disabled) {
+  filter: none;
+  color: var(--ink);
+}
+
+button.link.danger {
+  color: var(--bad);
+}
+
+.button-link {
+  align-self: start;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.record-badges {
+  display: flex;
+  flex: none;
+  gap: 0.4rem;
+}

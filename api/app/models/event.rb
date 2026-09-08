@@ -5,6 +5,13 @@ class Event < ApplicationRecord
   CANCELLED = "cancelled"
   STATUSES = [ SCHEDULED, CANCELLED ].freeze
 
+  # An occurrence is identified by its local date (`event_exceptions` is unique
+  # on event_id + original_date), so an event can have at most one occurrence
+  # per day. Anything sub-daily is not representable, and silently emitting only
+  # the first occurrence of the day would be worse than refusing the rule.
+  SUPPORTED_FREQUENCIES = %w[DAILY WEEKLY MONTHLY YEARLY].freeze
+  SUB_DAILY_PARTS = /BYHOUR|BYMINUTE|BYSECOND/
+
   belongs_to :event_type
   belongs_to :venue, optional: true
   has_many :event_exceptions, dependent: :destroy
@@ -16,6 +23,7 @@ class Event < ApplicationRecord
 
   validate :ends_after_starts
   validate :recurrence_rule_is_parseable
+  validate :recurrence_rule_is_supported
   validate :bookable_events_have_capacity
 
   scope :scheduled, -> { where(status: SCHEDULED) }
@@ -63,6 +71,25 @@ class Event < ApplicationRecord
     # ice_cube raises a variety of classes for malformed input; the useful
     # outcome either way is a validation message rather than a 500 at render.
     errors.add(:recurrence_rule, "is not a valid RRULE")
+  end
+
+  def recurrence_rule_is_supported
+    return if recurrence_rule.blank?
+
+    rule = recurrence_rule.upcase
+    frequency = rule[/FREQ=([A-Z]+)/, 1]
+
+    unless SUPPORTED_FREQUENCIES.include?(frequency)
+      errors.add(:recurrence_rule,
+                 "must repeat daily, weekly, monthly, or yearly — " \
+                 "an event cannot occur more than once a day")
+    end
+
+    return unless rule.match?(SUB_DAILY_PARTS)
+
+    errors.add(:recurrence_rule,
+               "cannot set a time of day. Make a second event instead of " \
+               "repeating one event twice in a day")
   end
 
   # A bookable event with no capacity would generate a block nobody can be

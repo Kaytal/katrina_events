@@ -23,10 +23,29 @@ export default function Dashboard() {
             <p className="record-meta">Edit the copy on Home, About, and Contact.</p>
           </div>
         </li>
+        <li>
+          <div>
+            <Link to="/admin/events" className="record-title">
+              Events
+            </Link>
+            <p className="record-meta">
+              Classes, workshops, and performances. Repeat rules, and calling off
+              a single session.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <Link to="/admin/venues" className="record-title">
+              Places
+            </Link>
+            <p className="record-meta">Venues you can attach to an event.</p>
+          </div>
+        </li>
       </ul>
 
       <p className="muted">
-        The calendar arrives in Phases 5–7 and the request queue in Phase 8.
+        Open availability slots arrive in Phase 7 and the request queue in Phase 8.
       </p>
 
       <button type="button" onClick={() => void signOut()}>

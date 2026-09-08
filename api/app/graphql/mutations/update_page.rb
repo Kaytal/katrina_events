@@ -44,14 +44,5 @@ module Mutations
         page.published_at = nil
       end
     end
-
-    def field_errors(page)
-      page.errors.group_by(&:attribute).map do |attribute, errors|
-        {
-          field: attribute.to_s.camelize(:lower),
-          messages: errors.map(&:message)
-        }
-      end
-    end
   end
 end

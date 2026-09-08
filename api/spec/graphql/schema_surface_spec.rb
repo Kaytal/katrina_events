@@ -9,7 +9,12 @@ RSpec.describe "Schema surface" do
   ADMIN_QUERY_FIELDS = %w[admin me].freeze
 
   PUBLIC_MUTATIONS = %w[login].freeze
-  ADMIN_MUTATIONS = %w[logout updatePage].freeze
+  ADMIN_MUTATIONS = %w[
+    logout updatePage
+    createEvent updateEvent deleteEvent
+    createEventException deleteEventException
+    createVenue updateVenue
+  ].freeze
 
   it "exposes only the root query fields we have accounted for" do
     expect(ApiSchema.query.fields.keys.sort)
@@ -26,7 +31,14 @@ RSpec.describe "Schema surface" do
     # runs before anything else in the resolver.
     ARGUMENTS = {
       "logout" => "input: {}",
-      "updatePage" => 'input: { slug: "about" }'
+      "updatePage" => 'input: { slug: "about" }',
+      "createEvent" => 'input: { eventTypeId: "1", title: "x", startsAt: "2026-04-07T18:00:00-06:00", endsAt: "2026-04-07T19:00:00-06:00" }',
+      "updateEvent" => 'input: { id: "1", title: "x" }',
+      "deleteEvent" => 'input: { id: "1" }',
+      "createEventException" => 'input: { eventId: "1", originalDate: "2026-04-14", action: "skip" }',
+      "deleteEventException" => 'input: { id: "1" }',
+      "createVenue" => 'input: { name: "x" }',
+      "updateVenue" => 'input: { id: "1", name: "x" }'
     }.freeze
 
     ADMIN_MUTATIONS.each do |name|

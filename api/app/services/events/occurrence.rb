@@ -2,7 +2,7 @@ module Events
   # One concrete instance of an event on the calendar. Not a row: recurring
   # events produce these on the fly, which is why the id is composite.
   Occurrence = Struct.new(
-    :event, :starts_at, :ends_at, :original_date, :moved,
+    :event, :starts_at, :ends_at, :original_date, :moved, :skipped,
     keyword_init: true
   ) do
     # Stable across requests and unique within a range, so FullCalendar can key
@@ -13,6 +13,12 @@ module Events
 
     def moved?
       moved
+    end
+
+    # Only ever true in the admin view: a cancelled occurrence has to be
+    # visible somewhere for her to restore it, but it is never public.
+    def skipped?
+      skipped
     end
 
     def overlaps?(from, to)

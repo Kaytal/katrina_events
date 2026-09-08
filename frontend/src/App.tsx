@@ -11,6 +11,9 @@ const Login = lazy(() => import('./pages/admin/Login'))
 const Dashboard = lazy(() => import('./pages/admin/Dashboard'))
 const PageList = lazy(() => import('./pages/admin/PageList'))
 const PageEditor = lazy(() => import('./pages/admin/PageEditor'))
+const EventList = lazy(() => import('./pages/admin/EventList'))
+const EventEditor = lazy(() => import('./pages/admin/EventEditor'))
+const VenueList = lazy(() => import('./pages/admin/VenueList'))
 
 function Loading() {
   return (
@@ -61,6 +64,38 @@ export default function App() {
             element={
               <Suspense fallback={<Loading />}>
                 <PageEditor />
+              </Suspense>
+            }
+          />
+          <Route
+            path="admin/events"
+            element={
+              <Suspense fallback={<Loading />}>
+                <EventList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="admin/events/new"
+            element={
+              <Suspense fallback={<Loading />}>
+                <EventEditor />
+              </Suspense>
+            }
+          />
+          <Route
+            path="admin/events/:id"
+            element={
+              <Suspense fallback={<Loading />}>
+                <EventEditor />
+              </Suspense>
+            }
+          />
+          <Route
+            path="admin/venues"
+            element={
+              <Suspense fallback={<Loading />}>
+                <VenueList />
               </Suspense>
             }
           />
