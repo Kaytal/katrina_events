@@ -1,0 +1,39 @@
+# Connection details come from the environment so the same image runs against
+# the compose Postgres in development and a managed one later. See .env.example.
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS", 5) %>
+  host: <%= ENV.fetch("POSTGRES_HOST", "localhost") %>
+  port: <%= ENV.fetch("POSTGRES_PORT", 5432) %>
+  username: <%= ENV.fetch("POSTGRES_USER", "postgres") %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD", "postgres") %>
+
+development:
+  <<: *default
+  database: <%= ENV.fetch("POSTGRES_DB", "katrina_events_development") %>
+
+test:
+  <<: *default
+  database: <%= ENV.fetch("POSTGRES_DB", "katrina_events_development") %>_test
+
+# Solid Cache / Queue / Cable get their own databases, as Rails 8 expects.
+# Phase 11 sets API_DATABASE_PASSWORD; nothing here runs until then.
+production:
+  primary: &primary_production
+    <<: *default
+    database: katrina_events_production
+    username: <%= ENV.fetch("POSTGRES_USER", "katrina") %>
+    password: <%= ENV["API_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: katrina_events_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: katrina_events_production_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_production
+    database: katrina_events_production_cable
+    migrations_paths: db/cable_migrate

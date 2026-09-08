@@ -1,0 +1,27 @@
+# Environment
+.env
+.env.local
+
+# Rails
+# --skip-git meant Rails generated no .gitignore of its own, so the credentials
+# key is listed here. It must never be committed.
+/api/config/master.key
+/api/log/*
+/api/tmp/*
+!/api/log/.keep
+!/api/tmp/.keep
+/api/storage/*
+!/api/storage/.keep
+/api/.bundle
+/api/vendor/bundle
+
+# Frontend
+/frontend/node_modules
+/frontend/dist
+
+# OS / editor
+.DS_Store
+*.swp
+
+# Planning Docs
+docs/

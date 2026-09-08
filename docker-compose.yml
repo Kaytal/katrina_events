@@ -1,0 +1,86 @@
+# Development stack. Everything runs on localhost; this is also the demo
+# environment until a domain is bought (see docs/plan.md §7, §11).
+#
+#   frontend  http://localhost:3001   esbuild watch + live reload
+#   api       http://localhost:3000   Rails, source bind-mounted
+#   mailpit   http://localhost:8025   catches all outbound mail
+#
+# nginx only enters in production, so the frontend talks to Rails directly and
+# rack-cors allows that one origin.
+
+name: katrina_events
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-katrina}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-katrina_events_development}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Without this, Rails boots first and dies trying to migrate.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-katrina} -d ${POSTGRES_DB:-katrina_events_development}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Deliberately not published to the host.
+    expose:
+      - "5432"
+
+  api:
+    build:
+      context: ./api
+    command: ./bin/dev-entrypoint
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-development}
+      RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-5}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-katrina}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-katrina_events_development}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3001}
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+    volumes:
+      - ./api:/app
+      # Keep container-built gems out of the bind mount.
+      - bundle_cache:/usr/local/bundle
+      # Uploaded images live on a volume, mounted into nginx too in production.
+      - uploads:/app/storage
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    command: node esbuild.config.mjs --watch
+    environment:
+      API_BASE_URL: ${API_BASE_URL-http://localhost:3000}
+    volumes:
+      - ./frontend:/app
+      - node_modules:/app/node_modules
+    ports:
+      - "3001:3001"
+    depends_on:
+      - api
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  postgres_data:
+  bundle_cache:
+  node_modules:
+  uploads:

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Development boot. Postgres is already healthy by the time compose starts us,
+# so this only has to reconcile gems, the schema, and a stale PID.
+set -euo pipefail
+
+# The gem cache is a named volume, seeded from the image on first run. It does
+# not refresh on rebuild, so a changed Gemfile is installed here.
+bundle check || bundle install
+
+rm -f tmp/pids/server.pid
+
+# Creates the database on first boot, migrates it afterwards.
+bin/rails db:prepare
+
+exec bin/rails server -b 0.0.0.0 -p 3000
