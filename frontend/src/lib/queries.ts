@@ -55,3 +55,51 @@ export const HEALTH_QUERY = gql`
     }
   }
 `
+
+export type User = {
+  __typename?: 'User'
+  id: string
+  email: string
+  name: string
+  role: string
+}
+
+export type MeQueryData = { me: User | null }
+
+export const ME_QUERY = gql`
+  query Me {
+    me {
+      id
+      email
+      name
+      role
+    }
+  }
+`
+
+export type LoginData = { login: { token: string; user: User } | null }
+export type LoginVars = { email: string; password: string }
+
+export const LOGIN_MUTATION = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(input: { email: $email, password: $password }) {
+      token
+      user {
+        id
+        email
+        name
+        role
+      }
+    }
+  }
+`
+
+export type LogoutData = { logout: { success: boolean } | null }
+
+export const LOGOUT_MUTATION = gql`
+  mutation Logout {
+    logout(input: {}) {
+      success
+    }
+  }
+`

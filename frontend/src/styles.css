@@ -212,3 +212,80 @@ body {
 .notice--bad {
   border-left-color: var(--bad);
 }
+
+/* --- Forms and panels (admin) --------------------------------------------- */
+
+.panel {
+  max-width: 26rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1.5rem;
+  background: var(--paper-raised);
+}
+
+.panel h1 {
+  margin: 0 0 1rem;
+  font-size: 1.375rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.form label {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.form input {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font: inherit;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.form input:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.form-error {
+  margin: 0 0 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 3px solid var(--bad);
+  background: #fdf3f3;
+  color: var(--bad);
+  font-size: 0.9375rem;
+}
+
+button {
+  margin-top: 1rem;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  justify-self: start;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.muted {
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+}

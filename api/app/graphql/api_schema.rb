@@ -2,11 +2,7 @@
 
 class ApiSchema < GraphQL::Schema
   query(Types::QueryType)
-
-  # No mutation root yet. The first one is the Phase 3 login; shipping the
-  # generator's `testField` placeholder just to have a root would put a dummy
-  # field in a public schema.
-  # mutation(Types::MutationType)
+  mutation(Types::MutationType)
 
   use GraphQL::Dataloader
 

@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import { useAuth } from '../lib/useAuth'
 
 const NAV = [
   { to: '/', label: 'Home' },
@@ -7,6 +8,8 @@ const NAV = [
 ]
 
 export default function Layout() {
+  const { signedIn } = useAuth()
+
   return (
     <div className="site">
       <a className="skip-link" href="#content">
@@ -27,6 +30,11 @@ export default function Layout() {
                 </NavLink>
               </li>
             ))}
+            {signedIn && (
+              <li>
+                <NavLink to="/admin">Admin</NavLink>
+              </li>
+            )}
           </ul>
         </nav>
       </header>

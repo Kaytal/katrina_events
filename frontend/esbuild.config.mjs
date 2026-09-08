@@ -65,7 +65,9 @@ const options = {
   minify: production,
   entryNames: production ? '[name]-[hash]' : '[name]',
   assetNames: production ? '[name]-[hash]' : '[name]',
-  chunkNames: production ? '[name]-[hash]' : '[name]',
+  // Shared chunks are always hashed, in development too: code splitting emits
+  // several anonymous chunks that would all claim the name 'chunk'.
+  chunkNames: '[name]-[hash]',
   loader: { '.png': 'file', '.jpg': 'file', '.svg': 'file', '.woff2': 'file' },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV ?? 'development'),

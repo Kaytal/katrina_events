@@ -78,6 +78,26 @@ PAGES = [
   }
 ].freeze
 
+# --- Katrina's account ------------------------------------------------------
+#
+# There is no signup surface anywhere in the app (Devise's `registerable` is
+# deliberately omitted), so accounts exist only because this runs.
+#
+# The email is an env var because her real address is still an open question in
+# the plan (§11.1); the placeholder is deliberately a .invalid domain, which is
+# reserved by RFC 2606 and can never be a real inbox, so a stray notification
+# cannot reach a stranger.
+admin_email = ENV.fetch("KATRINA_EMAIL", "katrina@example.invalid")
+admin_password = ENV.fetch("KATRINA_PASSWORD", "change-me-in-development")
+
+katrina = User.find_or_initialize_by(email: admin_email)
+katrina.name = ENV.fetch("KATRINA_NAME", "Katrina")
+katrina.role = "admin"
+# Only set on create, so re-seeding never resets a password she has changed.
+katrina.password = admin_password if katrina.new_record?
+katrina.save!
+puts "seeded user: #{katrina.email} (#{katrina.new_record? ? 'created' : 'present'})"
+
 PAGES.each do |attributes|
   page = Page.find_or_initialize_by(slug: attributes[:slug])
   page.assign_attributes(attributes)

@@ -33,9 +33,48 @@ class GraphqlController < ApplicationController
   end
 
   def query_context
+    user, payload, auth_error = authenticate_from_token
+
     {
-      # current_user arrives in Phase 3, from the devise-jwt Authorization header.
+      current_user: user,
+      jwt_payload: payload,
+      # Lets require_admin! say "your session expired" rather than bouncing her
+      # to the login form with no explanation.
+      auth_error: auth_error
     }
+  end
+
+  # devise-jwt would normally do this in Warden middleware matched on a request
+  # path. With one endpoint there is no path to match, so the token is decoded
+  # here and the result handed to the schema through context.
+  #
+  # Returns [user, payload, error]. A bad token is not a request failure — `me`
+  # answers null and the client clears it — so nothing raises.
+  def authenticate_from_token
+    token = bearer_token
+    return [ nil, nil, nil ] if token.blank?
+
+    payload = Warden::JWTAuth::TokenDecoder.new.call(token)
+    user = User.find_for_jwt_authentication(payload["sub"])
+    return [ nil, nil, :invalid ] if user.nil?
+
+    # The decoder verifies the signature and expiry but knows nothing about
+    # revocation, so logout would not actually log anyone out without this.
+    # The check lives on the configured strategy (JwtDenylist), not on User.
+    return [ nil, nil, :revoked ] if User.jwt_revocation_strategy.jwt_revoked?(payload, user)
+
+    [ user, payload, nil ]
+  rescue JWT::ExpiredSignature
+    [ nil, nil, :expired ]
+  rescue JWT::DecodeError
+    [ nil, nil, :invalid ]
+  end
+
+  def bearer_token
+    header = request.headers["Authorization"].to_s
+    return nil unless header.start_with?("Bearer ")
+
+    header.delete_prefix("Bearer ").strip.presence
   end
 
   # GraphQL-over-HTTP distinguishes two kinds of failure. A *request* error —
@@ -99,7 +138,13 @@ class GraphqlController < ApplicationController
     logger.error exception.message
     logger.error exception.backtrace.join("\n")
 
-    render json: { errors: [ { message: exception.message, backtrace: exception.backtrace } ], data: nil },
-           status: :internal_server_error
+    # Only the application frames, and only a handful. The full trace is in the
+    # log; a 200-frame array in the response body just buries the message.
+    app_frames = exception.backtrace.grep(%r{^/app/}).first(8)
+
+    render json: {
+      errors: [ { message: exception.message, exception: exception.class.name, backtrace: app_frames } ],
+      data: nil
+    }, status: :internal_server_error
   end
 end
