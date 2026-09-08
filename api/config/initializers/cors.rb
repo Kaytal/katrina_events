@@ -5,7 +5,7 @@ if Rails.env.development?
   Rails.application.config.middleware.insert_before 0, Rack::Cors do
     allow do
       origins ENV.fetch("CORS_ORIGINS", "http://localhost:3001").split(",").map(&:strip)
-      resource "/api/*", headers: :any, methods: %i[get post patch put delete options head]
+      resource "/graphql", headers: :any, methods: %i[get post options head]
     end
   end
 end

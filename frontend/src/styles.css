@@ -1,64 +1,214 @@
+/*
+ * Functional styling only. The real design pass is Phase 10 — the site should
+ * end up looking like it belongs to a dance instructor at a fantasy festival,
+ * not a SaaS template, and that is a deliberate later step.
+ */
+
 :root {
   --ink: #1f1a17;
+  --ink-soft: #5c534b;
   --paper: #fdfbf7;
+  --paper-raised: #ffffff;
   --rule: #e3dcd1;
-  --good: #2f6b46;
+  --accent: #6b3f7a;
   --bad: #8c2f2f;
+  --measure: 34rem;
   color-scheme: light;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', sans-serif;
 }
 
-.shell {
-  max-width: 42rem;
+.site {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+/* Visible only once focused, so keyboard users get it and nobody else sees it. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.5rem 1rem;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--rule);
+  padding: 1.25rem 1.5rem;
+}
+
+.wordmark {
+  color: inherit;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+
+.site-header nav ul {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-header nav a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+}
+
+.site-header nav a:hover {
+  color: var(--ink);
+}
+
+.site-header nav a.active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
+.site-main {
+  flex: 1;
+  width: 100%;
+  max-width: 44rem;
   margin: 0 auto;
-  padding: 4rem 1.5rem;
+  padding: 3rem 1.5rem 4rem;
 }
 
-h1 {
-  margin: 0 0 0.5rem;
+.site-main h1 {
+  margin: 0 0 1.5rem;
   font-size: 2rem;
+  line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
-.lede {
-  margin: 0 0 2rem;
-  max-width: 34rem;
-  color: #5c534b;
+.site-footer {
+  border-top: 1px solid var(--rule);
+  padding: 1.5rem;
 }
 
-.status {
+.site-footer p {
+  max-width: var(--measure);
+  margin: 0 auto;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* Markdown output. Selectors are scoped to .prose because the HTML comes from
+ * the API and carries no classes of its own. */
+.prose {
+  max-width: var(--measure);
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose h2,
+.prose h3 {
+  margin: 2rem 0 0.75rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.prose h2 {
+  font-size: 1.375rem;
+}
+
+.prose h3 {
+  font-size: 1.0625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.prose p,
+.prose ul,
+.prose ol {
+  margin: 0 0 1.1rem;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.25rem;
+}
+
+.prose li {
+  margin-bottom: 0.35rem;
+}
+
+.prose a {
+  color: var(--accent);
+  text-underline-offset: 2px;
+}
+
+.prose blockquote {
+  margin: 1.5rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-soft);
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.prose th,
+.prose td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  text-align: left;
+}
+
+.notice {
+  max-width: var(--measure);
   border: 1px solid var(--rule);
-  border-left-width: 4px;
+  border-left: 4px solid var(--rule);
   border-radius: 4px;
   padding: 1rem 1.25rem;
-  background: #fff;
+  background: var(--paper-raised);
 }
 
-.status--good { border-left-color: var(--good); }
-.status--bad { border-left-color: var(--bad); }
-
-.status dl {
-  display: grid;
-  grid-template-columns: minmax(6rem, max-content) 1fr;
-  gap: 0.25rem 1rem;
-  margin: 0.75rem 0 0;
+.notice h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
 }
 
-.status dt {
-  color: #6b6259;
-  font-size: 0.875rem;
-}
-
-.status dd {
+.notice p {
   margin: 0;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+
+.notice--bad {
+  border-left-color: var(--bad);
 }

@@ -27,6 +27,10 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
+# GraphQL is the primary API layer. A thin REST edge remains for responses that
+# are not JSON for our own client: the .ics calendar feeds and /uploads.
+gem "graphql", "~> 2.4"
+
 # Cross-origin requests are only needed in development, where esbuild serves the
 # frontend on :3001 and Rails answers on :3000. In production nginx fronts both
 # on one origin and no CORS headers are sent.

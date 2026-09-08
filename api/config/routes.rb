@@ -1,11 +1,14 @@
 Rails.application.routes.draw do
-  namespace :api do
-    namespace :v1 do
-      get "health" => "health#show"
-    end
-  end
+  # GraphQL is the API. Queries are sent as GET so they stay HTTP-cacheable
+  # (ETag + conditional GET); mutations are POST.
+  get "/graphql", to: "graphql#execute"
+  post "/graphql", to: "graphql#execute"
 
-  # Boot-only check for load balancers: 200 if the app loaded, 500 otherwise.
-  # /api/v1/health is the richer one, and the one the frontend calls.
+  # The REST edge, deliberately small: responses that are not JSON for our own
+  # client. Calendar feeds (Phase 9) return text/calendar to Google Calendar and
+  # Apple Calendar, and /uploads is served by nginx, not Rails.
+  #
+  # Plain-HTTP liveness for load balancers and container healthchecks: 200 if
+  # the app booted. The `health` GraphQL query is the richer one.
   get "up" => "rails/health#show", as: :rails_health_check
 end
