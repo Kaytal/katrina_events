@@ -46,6 +46,10 @@ export const apolloClient = new ApolloClient({
       // identified by its slug. Without this every query result is a separate
       // cache entry and navigating back refetches.
       Page: { keyFields: ['slug'] },
+      // An occurrence's id is "<eventId>:<originalDate>", already unique and
+      // stable, so the default id-based normalization is what we want. Event
+      // types and venues are ordinary records.
+      EventOccurrence: { keyFields: ['id'] },
       Query: {
         fields: {
           page: {
@@ -53,6 +57,10 @@ export const apolloClient = new ApolloClient({
             // the next.
             keyArgs: ['slug'],
           },
+          // Each window is its own cache entry. Without this, paging from
+          // September to October would overwrite September's list and going
+          // back would show the wrong month until the refetch landed.
+          events: { keyArgs: ['from', 'to'] },
         },
       },
     },

@@ -197,3 +197,88 @@ export const UPDATE_PAGE_MUTATION = gql`
     }
   }
 `
+
+export type EventType = {
+  __typename?: 'EventType'
+  id: string
+  name: string
+  slug: string
+  color: string
+  description: string | null
+}
+
+export type Venue = {
+  __typename?: 'Venue'
+  id: string
+  name: string
+  address: string | null
+  url: string | null
+}
+
+export type EventOccurrence = {
+  __typename?: 'EventOccurrence'
+  id: string
+  eventId: string
+  title: string
+  description: string | null
+  startsAt: string
+  endsAt: string
+  allDay: boolean
+  bookable: boolean
+  capacity: number | null
+  priceNote: string | null
+  recurring: boolean
+  moved: boolean
+  originalDate: string
+  eventType: EventType
+  venue: Venue | null
+}
+
+export type EventsQueryData = { events: EventOccurrence[] }
+export type EventsQueryVars = { from: string; to: string }
+
+export const EVENTS_QUERY = gql`
+  query Events($from: ISO8601DateTime!, $to: ISO8601DateTime!) {
+    events(from: $from, to: $to) {
+      id
+      eventId
+      title
+      description
+      startsAt
+      endsAt
+      allDay
+      bookable
+      capacity
+      priceNote
+      recurring
+      moved
+      originalDate
+      eventType {
+        id
+        name
+        slug
+        color
+      }
+      venue {
+        id
+        name
+        address
+        url
+      }
+    }
+  }
+`
+
+export type EventTypesQueryData = { eventTypes: EventType[] }
+
+export const EVENT_TYPES_QUERY = gql`
+  query EventTypes {
+    eventTypes {
+      id
+      name
+      slug
+      color
+      description
+    }
+  }
+`

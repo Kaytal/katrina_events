@@ -20,6 +20,15 @@ module Types
       argument :slug, String, required: true
     end
 
+    field :events, [ Types::EventOccurrenceType ], null: false,
+          description: "Expanded occurrences overlapping [from, to), in chronological order. Recurrence rules never reach the client." do
+      argument :from, GraphQL::Types::ISO8601DateTime, required: true
+      argument :to, GraphQL::Types::ISO8601DateTime, required: true
+    end
+
+    field :event_types, [ Types::EventTypeType ], null: false,
+          description: "Every category, for the calendar's colour legend."
+
     def health
       Health.new
     end
@@ -36,6 +45,18 @@ module Types
     def admin
       require_admin!
       Types::AdminType
+    end
+
+    def events(from:, to:)
+      Events::Expansion.call(from: from.in_time_zone, to: to.in_time_zone)
+    rescue Events::Expansion::RangeTooLarge => e
+      raise GraphQL::ExecutionError.new(e.message, extensions: { "code" => "RANGE_TOO_LARGE" })
+    rescue ArgumentError => e
+      raise GraphQL::ExecutionError.new(e.message, extensions: { "code" => "BAD_REQUEST" })
+    end
+
+    def event_types
+      EventType.alphabetical
     end
 
     def page(slug:)

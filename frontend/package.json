@@ -12,6 +12,10 @@
   },
   "dependencies": {
     "@apollo/client": "^3.14.1",
+    "@fullcalendar/core": "^6.1.21",
+    "@fullcalendar/daygrid": "^6.1.21",
+    "@fullcalendar/list": "^6.1.21",
+    "@fullcalendar/react": "^6.1.21",
     "dompurify": "^3.4.15",
     "graphql": "^16.14.2",
     "marked": "^15.0.12",

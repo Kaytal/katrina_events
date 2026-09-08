@@ -144,6 +144,7 @@ GEM
       logger
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
+    ice_cube (0.17.0)
     image_processing (1.14.0)
       mini_magick (>= 4.9.5, < 6)
       ruby-vips (>= 2.0.17, < 3)
@@ -397,6 +398,7 @@ DEPENDENCIES
   devise-jwt (~> 0.12)
   factory_bot_rails
   graphql (~> 2.4)
+  ice_cube (~> 0.17)
   image_processing (~> 1.2)
   json (~> 2.7)
   pg (~> 1.1)

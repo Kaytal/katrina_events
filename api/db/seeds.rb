@@ -105,3 +105,107 @@ PAGES.each do |attributes|
   page.save!
   puts "seeded page: #{page.slug}"
 end
+
+
+# --- Calendar ---------------------------------------------------------------
+#
+# PLACEHOLDER SCHEDULE. The shapes are right — a weekly bookable class, a
+# one-off workshop, and a multi-day festival announcement — but the specific
+# days, times, prices, and venues are invented and need replacing with hers
+# (plan §11). Dates are relative to today so `db:seed` always produces a
+# populated month rather than an empty calendar.
+
+uplift = Venue.find_or_initialize_by(name: "Uplift")
+uplift.assign_attributes(
+  address: "1600 Example Ave, Denver, CO 80202",
+  notes: "Weekly classes. Studio B, shoes off at the door."
+)
+uplift.save!
+
+festival = Venue.find_or_initialize_by(name: "Front Range Fantasy Festival")
+festival.assign_attributes(
+  address: "Larkspur, CO",
+  url: "https://example.invalid/festival",
+  notes: "Seasonal. Performances on the main stage."
+)
+festival.save!
+
+EVENT_TYPES = [
+  { slug: "littles-dance-class", name: "Littles Dance Class", color: "#6b3f7a",
+    description: "Weekly class for ages 3–6." },
+  { slug: "workshop", name: "Workshop", color: "#2f6b46",
+    description: "Seasonal, all ages." },
+  { slug: "festival-appearance", name: "Festival Appearance", color: "#a8562c",
+    description: "Performances — come watch, nothing to sign up for." },
+  { slug: "private-event", name: "Private Event", color: "#3b5b8c",
+    description: "Parties and one-off bookings." }
+].freeze
+
+types = EVENT_TYPES.to_h do |attributes|
+  type = EventType.find_or_initialize_by(slug: attributes[:slug])
+  type.assign_attributes(attributes)
+  type.save!
+  [ attributes[:slug], type ]
+end
+
+# Anchor the weekly class on the Tuesday of last week, so the calendar has
+# history behind it as well as occurrences ahead.
+last_tuesday = Time.zone.today.prev_occurring(:tuesday) - 7.days
+
+class_event = Event.find_or_initialize_by(title: "Littles Dance Class")
+class_event.assign_attributes(
+  event_type: types.fetch("littles-dance-class"),
+  venue: uplift,
+  description: "Movement, music, and permission to be ridiculous. Ages 3–6, " \
+               "grown-ups welcome to stay. Bring water and soft-soled shoes.",
+  starts_at: Time.zone.local(last_tuesday.year, last_tuesday.month, last_tuesday.day, 16, 30),
+  ends_at: Time.zone.local(last_tuesday.year, last_tuesday.month, last_tuesday.day, 17, 15),
+  recurrence_rule: "FREQ=WEEKLY;BYDAY=TU",
+  bookable: true,
+  capacity: 12,
+  price_note: "$15 per class, or $50 for four. Venmo or cash at the door."
+)
+class_event.save!
+
+# One cancelled Tuesday four weeks out, so the exception path has real data to
+# render and the admin editor (Phase 6) has something to show.
+skipped = class_event.starts_at.to_date + 28.days
+EventException.find_or_create_by!(event: class_event, original_date: skipped) do |exception|
+  exception.action = "skip"
+end
+
+workshop_day = Time.zone.today + 18.days
+workshop = Event.find_or_initialize_by(title: "Partner Dance Workshop")
+workshop.assign_attributes(
+  event_type: types.fetch("workshop"),
+  venue: uplift,
+  description: "Two hours, no partner needed, no experience needed.",
+  starts_at: Time.zone.local(workshop_day.year, workshop_day.month, workshop_day.day, 13, 0),
+  ends_at: Time.zone.local(workshop_day.year, workshop_day.month, workshop_day.day, 15, 0),
+  bookable: true,
+  capacity: 20,
+  price_note: "$40. Venmo in advance to hold your spot."
+)
+workshop.save!
+
+# Announcements: bookable: false, so they appear with no request button.
+festival_saturday = Time.zone.today + 10.days
+[
+  { title: "Festival main stage — Saturday", day: festival_saturday, from: 14, to: 15 },
+  { title: "Festival main stage — Sunday", day: festival_saturday + 1, from: 12, to: 13 }
+].each do |slot|
+  day = slot[:day]
+  appearance = Event.find_or_initialize_by(title: slot[:title])
+  appearance.assign_attributes(
+    event_type: types.fetch("festival-appearance"),
+    venue: festival,
+    description: "Come and watch — no sign-up, and no ticket beyond festival entry.",
+    starts_at: Time.zone.local(day.year, day.month, day.day, slot[:from], 0),
+    ends_at: Time.zone.local(day.year, day.month, day.day, slot[:to], 0),
+    bookable: false
+  )
+  appearance.save!
+end
+
+puts "seeded #{Venue.count} venues, #{EventType.count} event types, " \
+     "#{Event.count} events, #{EventException.count} exceptions"

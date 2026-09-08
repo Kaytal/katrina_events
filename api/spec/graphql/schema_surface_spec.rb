@@ -5,7 +5,7 @@ require "rails_helper"
 # this spec fails the build, which is the point. §9's "every admin route 401s"
 # becomes, on a single endpoint, "every root field is accounted for".
 RSpec.describe "Schema surface" do
-  PUBLIC_QUERY_FIELDS = %w[health page].freeze
+  PUBLIC_QUERY_FIELDS = %w[eventTypes events health page].freeze
   ADMIN_QUERY_FIELDS = %w[admin me].freeze
 
   PUBLIC_MUTATIONS = %w[login].freeze

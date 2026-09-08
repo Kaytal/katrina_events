@@ -35,6 +35,11 @@ gem "image_processing", "~> 1.2"
 # Revisit when Rails ships a release that calls the new signature.
 gem "json", "~> 2.7"
 
+# Recurrence. Rules are stored as RFC-5545 RRULE strings and expanded
+# server-side, so the client only ever asks for a date range and gets a flat
+# list of concrete occurrences back.
+gem "ice_cube", "~> 0.17"
+
 # Auth. Devise supplies password hashing and validation only — no routes, no
 # views, no registerable module; login and logout are GraphQL mutations.
 gem "devise", "~> 4.9"

@@ -1,12 +1,18 @@
+import { Suspense, lazy } from 'react'
 import { useQuery } from '@apollo/client'
 import { hasErrorCode } from '../lib/graphqlErrors'
 import { PAGE_QUERY, type PageQueryData, type PageQueryVars } from '../lib/queries'
 import { useDocumentMeta } from '../lib/useDocumentMeta'
 import Markdown from './Markdown'
 
+// FullCalendar is the heaviest thing on the site and only the home page shows
+// it, so it loads as its own chunk rather than in every visitor's first
+// download.
+const Calendar = lazy(() => import('./calendar/Calendar'))
+
 /**
  * Every public page is the same shape: fetch one row by slug, render its
- * Markdown. Phase 4 gives Katrina an editor for the same rows.
+ * Markdown. The home page additionally carries the calendar.
  */
 export default function PageView({ slug }: { slug: string }) {
   const { data, loading, error } = useQuery<PageQueryData, PageQueryVars>(PAGE_QUERY, {
@@ -45,9 +51,17 @@ export default function PageView({ slug }: { slug: string }) {
   }
 
   return (
-    <article>
-      <h1>{page.title}</h1>
-      <Markdown source={page.body} />
-    </article>
+    <>
+      <article>
+        <h1>{page.title}</h1>
+        <Markdown source={page.body} />
+      </article>
+
+      {slug === 'home' && (
+        <Suspense fallback={<p className="notice" role="status">Loading the calendar…</p>}>
+          <Calendar />
+        </Suspense>
+      )}
+    </>
   )
 }
