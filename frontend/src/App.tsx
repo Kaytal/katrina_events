@@ -9,6 +9,8 @@ import NotFound from './pages/NotFound'
 // a separate chunk, so a visitor reading the About page never downloads them.
 const Login = lazy(() => import('./pages/admin/Login'))
 const Dashboard = lazy(() => import('./pages/admin/Dashboard'))
+const PageList = lazy(() => import('./pages/admin/PageList'))
+const PageEditor = lazy(() => import('./pages/admin/PageEditor'))
 
 function Loading() {
   return (
@@ -43,6 +45,22 @@ export default function App() {
             element={
               <Suspense fallback={<Loading />}>
                 <Dashboard />
+              </Suspense>
+            }
+          />
+          <Route
+            path="admin/pages"
+            element={
+              <Suspense fallback={<Loading />}>
+                <PageList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="admin/pages/:slug"
+            element={
+              <Suspense fallback={<Loading />}>
+                <PageEditor />
               </Suspense>
             }
           />

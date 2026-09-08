@@ -12,6 +12,9 @@ module Types
     field :me, Types::UserType, null: true,
           description: "The signed-in administrator, or null when the request carries no valid token."
 
+    field :admin, Types::AdminType, null: false,
+          description: "Authenticated read access. Fails without a valid token."
+
     field :page, Types::PageType, null: true,
           description: "One published static page by slug. Drafts and future-dated pages are not visible." do
       argument :slug, String, required: true
@@ -26,6 +29,13 @@ module Types
     # Fields that expose her data call require_admin! and do raise.
     def me
       current_user
+    end
+
+    # The single gate for every authenticated read. Returns self only so that
+    # AdminType's own resolvers have an object to hang off; the check is here.
+    def admin
+      require_admin!
+      Types::AdminType
     end
 
     def page(slug:)
