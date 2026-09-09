@@ -950,3 +950,122 @@ button.link.danger {
   flex: none;
   gap: 0.4rem;
 }
+
+/* --- Calendar states ------------------------------------------------------ */
+
+/* Colour carries event type, so state is carried by weight and texture
+   instead — a full or closed session should read as unavailable without
+   relying on hue. */
+.calendar-grid .fc-daygrid-event.is-full,
+.calendar-grid .fc-daygrid-event.is-closed {
+  opacity: 0.55;
+}
+
+.calendar-grid .fc-daygrid-event.is-slot .fc-event-title {
+  font-weight: 500;
+  font-style: italic;
+}
+
+.legend-states li:nth-child(1) { color: var(--good); }
+.legend-states li:nth-child(2) { color: var(--ink-soft); }
+.legend-states li:nth-child(3) { color: var(--ink-soft); }
+.legend-states li:nth-child(4) { color: #a8562c; }
+
+.state--full,
+.state--closed {
+  color: var(--ink-soft);
+}
+
+/* --- Slots ---------------------------------------------------------------- */
+
+.panel--wide {
+  max-width: 34rem;
+}
+
+.slots {
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+
+.slot {
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.slot.needs-review {
+  border-left: 3px solid #a8562c;
+  padding-left: 0.75rem;
+  background: #fbf5ee;
+}
+
+.slot-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.slot-when {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.review {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 3px;
+  background: #f7ede2;
+}
+
+.review p {
+  margin: 0 0 0.4rem;
+  font-size: 0.875rem;
+}
+
+.review-summary {
+  margin: 1.5rem 0;
+  border: 1px solid #e0c7ab;
+  border-left: 4px solid #a8562c;
+  border-radius: 4px;
+  padding: 1rem 1.25rem;
+  background: #fbf5ee;
+}
+
+.review-summary h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.slot-editor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1.25rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 3px;
+  background: var(--paper-raised);
+}
+
+.override label {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.override input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.override input::placeholder {
+  color: var(--ink-soft);
+  font-style: italic;
+}

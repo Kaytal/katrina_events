@@ -5,7 +5,7 @@ require "rails_helper"
 # this spec fails the build, which is the point. §9's "every admin route 401s"
 # becomes, on a single endpoint, "every root field is accounted for".
 RSpec.describe "Schema surface" do
-  PUBLIC_QUERY_FIELDS = %w[eventTypes events health page].freeze
+  PUBLIC_QUERY_FIELDS = %w[eventTypes events health page timeBlock timeBlocks].freeze
   ADMIN_QUERY_FIELDS = %w[admin me].freeze
 
   PUBLIC_MUTATIONS = %w[login].freeze
@@ -14,6 +14,8 @@ RSpec.describe "Schema surface" do
     createEvent updateEvent deleteEvent
     createEventException deleteEventException
     createVenue updateVenue
+    createAvailabilityPattern updateAvailabilityPattern deleteAvailabilityPattern
+    updateTimeBlock materializeTimeBlocks
   ].freeze
 
   it "exposes only the root query fields we have accounted for" do
@@ -38,7 +40,12 @@ RSpec.describe "Schema surface" do
       "createEventException" => 'input: { eventId: "1", originalDate: "2026-04-14", action: "skip" }',
       "deleteEventException" => 'input: { id: "1" }',
       "createVenue" => 'input: { name: "x" }',
-      "updateVenue" => 'input: { id: "1", name: "x" }'
+      "updateVenue" => 'input: { id: "1", name: "x" }',
+      "createAvailabilityPattern" => 'input: { eventTypeId: "1", weekday: 2, startTime: "16:00", endTime: "18:00", slotMinutes: 30, capacity: 1, effectiveFrom: "2026-04-01" }',
+      "updateAvailabilityPattern" => 'input: { id: "1", capacity: 2 }',
+      "deleteAvailabilityPattern" => 'input: { id: "1" }',
+      "updateTimeBlock" => 'input: { id: "1", status: "closed" }',
+      "materializeTimeBlocks" => "input: {}"
     }.freeze
 
     ADMIN_MUTATIONS.each do |name|

@@ -7,13 +7,20 @@ import type { DatesSetArg, EventClickArg } from '@fullcalendar/core'
 import {
   EVENTS_QUERY,
   EVENT_TYPES_QUERY,
+  TIME_BLOCKS_QUERY,
   type EventOccurrence,
   type EventTypesQueryData,
   type EventsQueryData,
   type EventsQueryVars,
+  type TimeBlock,
+  type TimeBlocksQueryData,
 } from '../../lib/queries'
-import EventDetail from './EventDetail'
-import { STATE_ICONS, STATE_LABELS, stateOf } from './occurrenceState'
+import EventDetail, { BlockDetail } from './EventDetail'
+import { STATE_ICONS, STATE_LABELS, stateOf, stateOfBlock } from './occurrenceState'
+
+type Selection =
+  | { kind: 'occurrence'; occurrence: EventOccurrence }
+  | { kind: 'block'; block: TimeBlock }
 
 // Month grid reads well on a desktop and terribly on a phone, where a list of
 // what is coming up is what someone actually wants.
@@ -26,7 +33,7 @@ export default function Calendar() {
   // FullCalendar tells us the visible window; that drives the query, so paging
   // to another month refetches rather than showing an empty grid.
   const [range, setRange] = useState<EventsQueryVars | null>(null)
-  const [selected, setSelected] = useState<EventOccurrence | null>(null)
+  const [selected, setSelected] = useState<Selection | null>(null)
   const view = useRef(initialView())
 
   const { data, previousData, loading, error } = useQuery<EventsQueryData, EventsQueryVars>(
@@ -39,6 +46,17 @@ export default function Calendar() {
 
   const { data: typeData } = useQuery<EventTypesQueryData>(EVENT_TYPES_QUERY)
 
+  // Open-availability slots are not events, so they come from their own query.
+  // Slots generated from a bookable event are already on the calendar as that
+  // event's occurrence — `standalone` is how the API says which is which.
+  const { data: blockData, previousData: previousBlockData } = useQuery<
+    TimeBlocksQueryData,
+    EventsQueryVars
+  >(TIME_BLOCKS_QUERY, {
+    variables: range ?? { from: '', to: '' },
+    skip: range === null,
+  })
+
   const handleDatesSet = useCallback((arg: DatesSetArg) => {
     setRange({ from: arg.start.toISOString(), to: arg.end.toISOString() })
     // Paging away leaves the open panel describing an occurrence that is no
@@ -49,23 +67,40 @@ export default function Calendar() {
   const handleEventClick = useCallback((arg: EventClickArg) => {
     // Clicking must not navigate — the detail panel is the whole interaction.
     arg.jsEvent.preventDefault()
-    setSelected((arg.event.extendedProps as { occurrence: EventOccurrence }).occurrence)
+    setSelected((arg.event.extendedProps as { selection: Selection }).selection)
   }, [])
 
   // Keep the previous window's events on screen while the next one loads,
   // rather than blanking the calendar on every page.
   const occurrences = (data ?? previousData)?.events ?? []
+  const blocks = ((blockData ?? previousBlockData)?.timeBlocks ?? []).filter(
+    (block) => block.standalone,
+  )
 
-  const fcEvents = occurrences.map((occurrence) => ({
-    id: occurrence.id,
-    title: occurrence.title,
-    start: occurrence.startsAt,
-    end: occurrence.endsAt,
-    allDay: occurrence.allDay,
-    backgroundColor: occurrence.eventType.color,
-    borderColor: occurrence.eventType.color,
-    extendedProps: { occurrence },
-  }))
+  const fcEvents = [
+    ...occurrences.map((occurrence) => ({
+      id: occurrence.id,
+      title: occurrence.title,
+      start: occurrence.startsAt,
+      end: occurrence.endsAt,
+      allDay: occurrence.allDay,
+      backgroundColor: occurrence.eventType.color,
+      borderColor: occurrence.eventType.color,
+      classNames: [`is-${stateOf(occurrence)}`],
+      extendedProps: { selection: { kind: 'occurrence' as const, occurrence } },
+    })),
+    ...blocks.map((block) => ({
+      id: `block-${block.id}`,
+      title: 'Available',
+      start: block.startsAt,
+      end: block.endsAt,
+      allDay: false,
+      backgroundColor: block.eventType.color,
+      borderColor: block.eventType.color,
+      classNames: ['is-slot', `is-${stateOfBlock(block)}`],
+      extendedProps: { selection: { kind: 'block' as const, block } },
+    })),
+  ]
 
   return (
     <section className="calendar" aria-label="Calendar">
@@ -103,13 +138,18 @@ export default function Calendar() {
         />
       </div>
 
-      {selected && <EventDetail occurrence={selected} onClose={() => setSelected(null)} />}
+      {selected?.kind === 'occurrence' && (
+        <EventDetail occurrence={selected.occurrence} onClose={() => setSelected(null)} />
+      )}
+      {selected?.kind === 'block' && (
+        <BlockDetail block={selected.block} onClose={() => setSelected(null)} />
+      )}
 
       <div className="legend">
         <h2>What&rsquo;s what</h2>
 
         <ul className="legend-states">
-          {(['open', 'announcement'] as const).map((state) => (
+          {(['open', 'full', 'closed', 'announcement'] as const).map((state) => (
             <li key={state}>
               <span aria-hidden="true">{STATE_ICONS[state]}</span> {STATE_LABELS[state]}
             </li>

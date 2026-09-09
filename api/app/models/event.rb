@@ -15,6 +15,7 @@ class Event < ApplicationRecord
   belongs_to :event_type
   belongs_to :venue, optional: true
   has_many :event_exceptions, dependent: :destroy
+  has_many :time_blocks, dependent: :destroy
 
   validates :title, presence: true
   validates :starts_at, :ends_at, presence: true

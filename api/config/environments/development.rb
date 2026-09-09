@@ -29,6 +29,23 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
+  # `bin/jobs` writes to log/development.log by default, so the jobs container
+  # produces no stdout at all and `docker compose logs jobs` shows nothing —
+  # a worker you cannot watch is a worker you find out about from its silence.
+  if ENV["RAILS_LOG_TO_STDOUT"].present?
+    config.logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new($stdout))
+  end
+
+  # Development logs at debug, which for a worker means every job's useful line
+  # is buried under its own SQL. The jobs container asks for info.
+  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "debug").to_sym
+
+  # Jobs run in the `jobs` container, against the queue database, exactly as
+  # they will in production — rather than inline, where a slow job would block
+  # a request and a broken one would look like a controller bug.
+  config.active_job.queue_adapter = :solid_queue
+  config.solid_queue.connects_to = { database: { writing: :queue } }
+
   # All outbound mail goes to Mailpit, which catches it and shows it at
   # http://localhost:8025. Nothing leaves the machine in development.
   config.action_mailer.delivery_method = :smtp

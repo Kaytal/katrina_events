@@ -29,6 +29,16 @@ module Types
     field :event_types, [ Types::EventTypeType ], null: false,
           description: "Every category, for the calendar's colour legend."
 
+    field :time_blocks, [ Types::TimeBlockType ], null: false,
+          description: "Open slots overlapping [from, to), in chronological order. Closed and full slots are not listed." do
+      argument :from, GraphQL::Types::ISO8601DateTime, required: true
+      argument :to, GraphQL::Types::ISO8601DateTime, required: true
+    end
+
+    field :time_block, Types::TimeBlockType, null: true do
+      argument :id, ID, required: true
+    end
+
     def health
       Health.new
     end
@@ -57,6 +67,16 @@ module Types
 
     def event_types
       EventType.alphabetical
+    end
+
+    def time_blocks(from:, to:)
+      TimeBlock.bookable_between(from.in_time_zone, to.in_time_zone)
+               .includes(:event_type, :venue, :event, :availability_pattern)
+               .order(:starts_at)
+    end
+
+    def time_block(id:)
+      TimeBlock.open.find(id)
     end
 
     def page(slug:)

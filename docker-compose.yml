@@ -62,6 +62,37 @@ services:
       mailpit:
         condition: service_started
 
+  # Deferred until Phase 7, when materializing time blocks became the first real
+  # background work. Same image and environment as `api`; only the command
+  # differs, so a job runs against exactly what a request runs against.
+  jobs:
+    build:
+      context: ./api
+    command: bin/jobs
+    environment:
+      RAILS_ENV: ${RAILS_ENV:-development}
+      RAILS_LOG_TO_STDOUT: "1"
+      RAILS_LOG_LEVEL: info
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-katrina}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-katrina_events_development}
+      DEVISE_JWT_SECRET_KEY: ${DEVISE_JWT_SECRET_KEY:?set DEVISE_JWT_SECRET_KEY in .env — see .env.example}
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+    volumes:
+      - ./api:/app
+      - bundle_cache:/usr/local/bundle
+      - uploads:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # The api container runs db:prepare on boot; starting jobs before the
+      # queue tables exist just means a crash loop until they do.
+      api:
+        condition: service_started
+
   frontend:
     build:
       context: ./frontend

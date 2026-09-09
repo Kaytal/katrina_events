@@ -207,5 +207,29 @@ festival_saturday = Time.zone.today + 10.days
   appearance.save!
 end
 
+# Open availability: the second generator. Thursdays 4–6pm in half-hour slots,
+# one person at a time — private lessons and one-off work.
+lessons = AvailabilityPattern.find_or_initialize_by(
+  event_type: types.fetch("private-event"),
+  weekday: 4,
+  start_time: "16:00"
+)
+lessons.assign_attributes(
+  venue: uplift,
+  end_time: "18:00",
+  slot_minutes: 30,
+  capacity: 1,
+  price_note: "$40 for a half-hour. Venmo in advance.",
+  effective_from: Time.zone.today,
+  active: true
+)
+lessons.save!
+
+# Materialize immediately so `docker compose up` plus seeds gives a populated
+# calendar rather than events with no slots behind them.
+result = TimeBlocks::Materializer.call
+
 puts "seeded #{Venue.count} venues, #{EventType.count} event types, " \
-     "#{Event.count} events, #{EventException.count} exceptions"
+     "#{Event.count} events, #{EventException.count} exceptions, " \
+     "#{AvailabilityPattern.count} availability patterns"
+puts "materialized time blocks: #{result}"

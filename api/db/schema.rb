@@ -10,9 +10,33 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_08_215252) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_08_231323) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "availability_patterns", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.integer "capacity", default: 1, null: false
+    t.datetime "created_at", null: false
+    t.date "effective_from", null: false
+    t.date "effective_to"
+    t.time "end_time", null: false
+    t.bigint "event_type_id", null: false
+    t.string "price_note"
+    t.integer "slot_minutes", default: 30, null: false
+    t.time "start_time", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "venue_id"
+    t.integer "weekday", null: false
+    t.index ["active", "weekday"], name: "index_availability_patterns_on_active_and_weekday"
+    t.index ["event_type_id"], name: "index_availability_patterns_on_event_type_id"
+    t.index ["venue_id"], name: "index_availability_patterns_on_venue_id"
+    t.check_constraint "capacity > 0", name: "availability_patterns_capacity_positive"
+    t.check_constraint "effective_to IS NULL OR effective_to >= effective_from", name: "availability_patterns_range_valid"
+    t.check_constraint "end_time > start_time", name: "availability_patterns_end_after_start"
+    t.check_constraint "slot_minutes > 0", name: "availability_patterns_slot_positive"
+    t.check_constraint "weekday >= 0 AND weekday <= 6", name: "availability_patterns_weekday_valid"
+  end
 
   create_table "event_exceptions", force: :cascade do |t|
     t.string "action", null: false
@@ -81,6 +105,38 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_08_215252) do
     t.index ["slug"], name: "index_pages_on_slug", unique: true
   end
 
+  create_table "time_blocks", force: :cascade do |t|
+    t.boolean "auto_closed", default: false, null: false
+    t.bigint "availability_pattern_id"
+    t.integer "capacity"
+    t.datetime "created_at", null: false
+    t.datetime "ends_at", null: false
+    t.bigint "event_id"
+    t.bigint "event_type_id", null: false
+    t.boolean "needs_review", default: false, null: false
+    t.text "notes"
+    t.date "original_date"
+    t.string "price_note"
+    t.string "review_reason"
+    t.datetime "starts_at", null: false
+    t.string "status", default: "open", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "venue_id"
+    t.index ["availability_pattern_id", "starts_at"], name: "index_time_blocks_on_availability_pattern_id_and_starts_at", unique: true, where: "(availability_pattern_id IS NOT NULL)"
+    t.index ["availability_pattern_id"], name: "index_time_blocks_on_availability_pattern_id"
+    t.index ["event_id", "original_date"], name: "index_time_blocks_on_event_id_and_original_date", unique: true, where: "(event_id IS NOT NULL)"
+    t.index ["event_id"], name: "index_time_blocks_on_event_id"
+    t.index ["event_type_id"], name: "index_time_blocks_on_event_type_id"
+    t.index ["starts_at"], name: "index_time_blocks_on_starts_at"
+    t.index ["status", "starts_at"], name: "index_time_blocks_on_status_and_starts_at"
+    t.index ["venue_id"], name: "index_time_blocks_on_venue_id"
+    t.check_constraint "NOT (availability_pattern_id IS NOT NULL AND event_id IS NOT NULL)", name: "time_blocks_single_source"
+    t.check_constraint "capacity IS NULL OR capacity > 0", name: "time_blocks_capacity_positive"
+    t.check_constraint "ends_at > starts_at", name: "time_blocks_end_after_start"
+    t.check_constraint "original_date IS NULL OR event_id IS NOT NULL", name: "time_blocks_original_date_needs_event"
+    t.check_constraint "status::text = ANY (ARRAY['open'::character varying, 'closed'::character varying, 'full'::character varying]::text[])", name: "time_blocks_status_valid"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
@@ -101,7 +157,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_08_215252) do
     t.index ["name"], name: "index_venues_on_name", unique: true
   end
 
+  add_foreign_key "availability_patterns", "event_types"
+  add_foreign_key "availability_patterns", "venues"
   add_foreign_key "event_exceptions", "events"
   add_foreign_key "events", "event_types"
   add_foreign_key "events", "venues"
+  add_foreign_key "time_blocks", "availability_patterns"
+  add_foreign_key "time_blocks", "event_types"
+  add_foreign_key "time_blocks", "events"
+  add_foreign_key "time_blocks", "venues"
 end

@@ -36,6 +36,27 @@ export default function Dashboard() {
         </li>
         <li>
           <div>
+            <Link to="/admin/availability" className="record-title">
+              Open availability
+            </Link>
+            <p className="record-meta">
+              Weekly windows that become individual slots — private lessons and
+              one-off work.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <Link to="/admin/slots" className="record-title">
+              Slots
+            </Link>
+            <p className="record-meta">
+              What people can actually ask for, and per-slot overrides.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div>
             <Link to="/admin/venues" className="record-title">
               Places
             </Link>
@@ -44,9 +65,7 @@ export default function Dashboard() {
         </li>
       </ul>
 
-      <p className="muted">
-        Open availability slots arrive in Phase 7 and the request queue in Phase 8.
-      </p>
+      <p className="muted">The request queue arrives in Phase 8.</p>
 
       <button type="button" onClick={() => void signOut()}>
         Sign out

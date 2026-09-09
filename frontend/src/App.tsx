@@ -14,6 +14,8 @@ const PageEditor = lazy(() => import('./pages/admin/PageEditor'))
 const EventList = lazy(() => import('./pages/admin/EventList'))
 const EventEditor = lazy(() => import('./pages/admin/EventEditor'))
 const VenueList = lazy(() => import('./pages/admin/VenueList'))
+const PatternList = lazy(() => import('./pages/admin/PatternList'))
+const SlotList = lazy(() => import('./pages/admin/SlotList'))
 
 function Loading() {
   return (
@@ -96,6 +98,22 @@ export default function App() {
             element={
               <Suspense fallback={<Loading />}>
                 <VenueList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="admin/availability"
+            element={
+              <Suspense fallback={<Loading />}>
+                <PatternList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="admin/slots"
+            element={
+              <Suspense fallback={<Loading />}>
+                <SlotList />
               </Suspense>
             }
           />

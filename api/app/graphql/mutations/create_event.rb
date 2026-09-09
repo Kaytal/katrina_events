@@ -27,6 +27,7 @@ module Mutations
       event = Event.new(attributes)
 
       if event.save
+        MaterializeTimeBlocksJob.perform_later
         { event: event, errors: [] }
       else
         { event: nil, errors: field_errors(event) }

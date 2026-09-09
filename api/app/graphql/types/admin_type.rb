@@ -31,8 +31,43 @@ module Types
       argument :id, ID, required: true
     end
 
+    field :availability_patterns, [ Types::AvailabilityPatternType ], null: false,
+          description: "Weekly templates, active ones first."
+
+    field :availability_pattern, Types::AvailabilityPatternType, null: true do
+      argument :id, ID, required: true
+    end
+
+    field :time_blocks, [ Types::TimeBlockAdminType ], null: false,
+          description: "Every slot in a window, whatever its status." do
+      argument :from, GraphQL::Types::ISO8601DateTime, required: true
+      argument :to, GraphQL::Types::ISO8601DateTime, required: true
+    end
+
+    field :blocks_needing_review, [ Types::TimeBlockAdminType ], null: false,
+          description: "Slots regeneration could not safely change. These are the ones asking for a decision."
+
     def pages
       Page.order(:slug)
+    end
+
+    def availability_patterns
+      AvailabilityPattern.includes(:event_type, :venue).order(active: :desc, weekday: :asc, start_time: :asc)
+    end
+
+    def availability_pattern(id:)
+      AvailabilityPattern.find(id)
+    end
+
+    def time_blocks(from:, to:)
+      TimeBlock.where("starts_at < ? AND ends_at > ?", to.in_time_zone, from.in_time_zone)
+               .includes(:event_type, :venue, :event, :availability_pattern)
+               .order(:starts_at)
+    end
+
+    def blocks_needing_review
+      TimeBlock.needing_review.includes(:event_type, :venue, :event, :availability_pattern)
+               .order(:starts_at)
     end
 
     def events(include_cancelled:)

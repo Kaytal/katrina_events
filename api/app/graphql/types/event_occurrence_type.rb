@@ -20,6 +20,11 @@ module Types
     field :capacity, Integer, null: true
     field :price_note, String, null: true
 
+    field :time_block, Types::TimeBlockType, null: true,
+          description: "The slot generated from this occurrence, when the event is bookable and a block has been materialized. Carried here so the calendar needs no second call."
+    field :spots_remaining, Integer, null: true,
+          description: "Shortcut for timeBlock.spotsRemaining; null when the occurrence is not bookable."
+
     field :recurring, Boolean, null: false
     field :moved, Boolean, null: false,
           description: "True when this occurrence was rescheduled away from the time its rule would have produced."
@@ -41,6 +46,20 @@ module Types
     def price_note = event.price_note
     def recurring = event.recurring?
     def moved = object.moved?
+
+    # Batched through a Dataloader source: one query per calendar render rather
+    # than one per occurrence.
+    def time_block
+      return nil unless event.bookable?
+
+      dataloader.with(Sources::TimeBlockForOccurrence)
+                .load([ event.id, object.original_date ])
+    end
+
+    def spots_remaining
+      block = time_block
+      block&.spots_remaining
+    end
     def skipped = object.skipped? || false
   end
 end

@@ -9,9 +9,16 @@ default: &default
   username: <%= ENV.fetch("POSTGRES_USER", "postgres") %>
   password: <%= ENV.fetch("POSTGRES_PASSWORD", "postgres") %>
 
+# Solid Queue wants its own database, in development as well as production, so
+# job rows never share a connection pool with application queries.
 development:
-  <<: *default
-  database: <%= ENV.fetch("POSTGRES_DB", "katrina_events_development") %>
+  primary: &primary_development
+    <<: *default
+    database: <%= ENV.fetch("POSTGRES_DB", "katrina_events_development") %>
+  queue:
+    <<: *primary_development
+    database: <%= ENV.fetch("POSTGRES_DB", "katrina_events_development") %>_queue
+    migrations_paths: db/queue_migrate
 
 test:
   <<: *default

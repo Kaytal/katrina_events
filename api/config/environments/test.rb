@@ -51,6 +51,10 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
 
+  # Jobs are asserted on, not executed: specs check that the right job was
+  # enqueued with the right arguments, and the materializer has its own specs.
+  config.active_job.queue_adapter = :test
+
   # Host authorization permits only .localhost and .test by default, but Rack::Test
   # sends www.example.com, which the middleware then answers with a 403. The
   # defaults are appended after this file loads, so add to the list rather than

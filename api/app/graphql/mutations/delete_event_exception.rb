@@ -18,6 +18,7 @@ module Mutations
 
       exception.destroy!
 
+      MaterializeTimeBlocksJob.perform_later
       { deleted_id: id, event: event.reload, errors: [] }
     end
   end

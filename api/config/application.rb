@@ -47,6 +47,14 @@ module Api
     config.time_zone = "America/Denver"
     config.active_record.default_timezone = :utc
 
+    # A `time` column is a wall clock with no date and no zone —
+    # availability_patterns.start_time means "4pm on the day this pattern
+    # covers", not an instant. Rails' default includes :time here, which
+    # converts it through the app zone on the way to the database: "16:00"
+    # lands as 23:00 UTC, and a 4–6pm window is stored as 23:00–01:00, which
+    # fails an end-after-start check constraint and reads back wrong across DST.
+    config.active_record.time_zone_aware_types = [ :datetime, :timestamptz ]
+
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Only loads a smaller set of middleware suitable for API only apps.

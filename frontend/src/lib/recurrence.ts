@@ -9,14 +9,16 @@
  */
 export type Frequency = 'none' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
 
+// `label` is for the compact day toggles; `plural` is for prose, because
+// "Thu" + "s" reads as "Thus".
 export const WEEKDAYS = [
-  { code: 'SU', label: 'Sun' },
-  { code: 'MO', label: 'Mon' },
-  { code: 'TU', label: 'Tue' },
-  { code: 'WE', label: 'Wed' },
-  { code: 'TH', label: 'Thu' },
-  { code: 'FR', label: 'Fri' },
-  { code: 'SA', label: 'Sat' },
+  { code: 'SU', label: 'Sun', plural: 'Sundays' },
+  { code: 'MO', label: 'Mon', plural: 'Mondays' },
+  { code: 'TU', label: 'Tue', plural: 'Tuesdays' },
+  { code: 'WE', label: 'Wed', plural: 'Wednesdays' },
+  { code: 'TH', label: 'Thu', plural: 'Thursdays' },
+  { code: 'FR', label: 'Fri', plural: 'Fridays' },
+  { code: 'SA', label: 'Sat', plural: 'Saturdays' },
 ] as const
 
 export const FREQUENCY_LABELS: Record<Frequency, string> = {

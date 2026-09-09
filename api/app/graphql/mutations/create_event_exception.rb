@@ -39,6 +39,7 @@ module Mutations
         # requests must offer her a "notify the N people approved for this"
         # action. Someone told yes who then finds a locked door is the worst
         # outcome this system can produce, and a silent close causes it.
+        MaterializeTimeBlocksJob.perform_later
         { exception: exception, event: event.reload, errors: [] }
       else
         { exception: nil, event: nil, errors: field_errors(exception) }

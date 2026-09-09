@@ -230,6 +230,11 @@ export type EventOccurrence = {
   recurring: boolean
   moved: boolean
   originalDate: string
+  spotsRemaining: number | null
+  timeBlock: Pick<
+    TimeBlock,
+    'id' | 'status' | 'capacity' | 'spotsRemaining' | 'priceNote'
+  > | null
   eventType: EventType
   venue: Venue | null
 }
@@ -253,6 +258,14 @@ export const EVENTS_QUERY = gql`
       recurring
       moved
       originalDate
+      spotsRemaining
+      timeBlock {
+        id
+        status
+        capacity
+        spotsRemaining
+        priceNote
+      }
       eventType {
         id
         name
@@ -580,6 +593,226 @@ export const UPDATE_VENUE_MUTATION = gql`
     updateVenue(input: { id: $id, name: $name, address: $address, url: $url, notes: $notes }) {
       venue { id name address url }
       errors { field messages }
+    }
+  }
+`
+
+// --- Time blocks -----------------------------------------------------------
+
+export type TimeBlock = {
+  __typename?: 'TimeBlock'
+  id: string
+  startsAt: string
+  endsAt: string
+  status: 'open' | 'closed' | 'full'
+  capacity: number | null
+  spotsRemaining: number | null
+  priceNote: string | null
+  standalone: boolean
+  eventType: EventType
+  venue: Venue | null
+}
+
+export type TimeBlocksQueryData = { timeBlocks: TimeBlock[] }
+
+export const TIME_BLOCKS_QUERY = gql`
+  query TimeBlocks($from: ISO8601DateTime!, $to: ISO8601DateTime!) {
+    timeBlocks(from: $from, to: $to) {
+      id
+      startsAt
+      endsAt
+      status
+      capacity
+      spotsRemaining
+      priceNote
+      standalone
+      eventType { id name slug color }
+      venue { id name address url }
+    }
+  }
+`
+
+// --- Admin: availability patterns ------------------------------------------
+
+export type AvailabilityPattern = {
+  __typename?: 'AvailabilityPattern'
+  id: string
+  weekday: number
+  startTime: string
+  endTime: string
+  slotMinutes: number
+  capacity: number
+  priceNote: string | null
+  effectiveFrom: string
+  effectiveTo: string | null
+  active: boolean
+  slotCount: number
+  eventType: EventType
+  venue: Venue | null
+}
+
+const PATTERN_FIELDS = `
+  id weekday startTime endTime slotMinutes capacity priceNote
+  effectiveFrom effectiveTo active slotCount
+  eventType { id name slug color }
+  venue { id name }
+`
+
+export type AdminPatternsData = { admin: { availabilityPatterns: AvailabilityPattern[] } }
+
+export const ADMIN_PATTERNS_QUERY = gql`
+  query AdminPatterns {
+    admin {
+      availabilityPatterns {
+        ${PATTERN_FIELDS}
+      }
+    }
+  }
+`
+
+export type PatternMutationData = {
+  createAvailabilityPattern?: { availabilityPattern: AvailabilityPattern | null; errors: FieldError[] } | null
+  updateAvailabilityPattern?: { availabilityPattern: AvailabilityPattern | null; errors: FieldError[] } | null
+}
+
+export const CREATE_PATTERN_MUTATION = gql`
+  mutation CreatePattern(
+    $eventTypeId: ID!, $venueId: ID, $weekday: Int!, $startTime: String!, $endTime: String!,
+    $slotMinutes: Int!, $capacity: Int!, $priceNote: String,
+    $effectiveFrom: ISO8601Date!, $effectiveTo: ISO8601Date
+  ) {
+    createAvailabilityPattern(input: {
+      eventTypeId: $eventTypeId, venueId: $venueId, weekday: $weekday,
+      startTime: $startTime, endTime: $endTime, slotMinutes: $slotMinutes,
+      capacity: $capacity, priceNote: $priceNote,
+      effectiveFrom: $effectiveFrom, effectiveTo: $effectiveTo
+    }) {
+      availabilityPattern { ${PATTERN_FIELDS} }
+      errors { field messages }
+    }
+  }
+`
+
+export const UPDATE_PATTERN_MUTATION = gql`
+  mutation UpdatePattern(
+    $id: ID!, $eventTypeId: ID, $venueId: ID, $weekday: Int, $startTime: String, $endTime: String,
+    $slotMinutes: Int, $capacity: Int, $priceNote: String,
+    $effectiveFrom: ISO8601Date, $effectiveTo: ISO8601Date, $active: Boolean,
+    $clearEffectiveTo: Boolean
+  ) {
+    updateAvailabilityPattern(input: {
+      id: $id, eventTypeId: $eventTypeId, venueId: $venueId, weekday: $weekday,
+      startTime: $startTime, endTime: $endTime, slotMinutes: $slotMinutes,
+      capacity: $capacity, priceNote: $priceNote,
+      effectiveFrom: $effectiveFrom, effectiveTo: $effectiveTo, active: $active,
+      clearEffectiveTo: $clearEffectiveTo
+    }) {
+      availabilityPattern { ${PATTERN_FIELDS} }
+      errors { field messages }
+    }
+  }
+`
+
+export const DELETE_PATTERN_MUTATION = gql`
+  mutation DeletePattern($id: ID!) {
+    deleteAvailabilityPattern(input: { id: $id }) {
+      deletedId
+      errors { field messages }
+    }
+  }
+`
+
+// --- Admin: slots ----------------------------------------------------------
+
+export type AdminTimeBlock = {
+  __typename?: 'AdminTimeBlock'
+  id: string
+  startsAt: string
+  endsAt: string
+  status: 'open' | 'closed' | 'full'
+  notes: string | null
+  capacityOverride: number | null
+  priceNoteOverride: string | null
+  effectiveCapacity: number | null
+  effectivePriceNote: string | null
+  inheritedCapacity: number | null
+  inheritedPriceNote: string | null
+  overridden: boolean
+  spotsRemaining: number | null
+  approvedCount: number
+  needsReview: boolean
+  reviewReason: string | null
+  eventType: EventType
+  venue: Venue | null
+  sourceKind: 'event' | 'pattern' | 'manual'
+  sourceTitle: string | null
+}
+
+const ADMIN_BLOCK_FIELDS = `
+  id startsAt endsAt status notes
+  capacityOverride priceNoteOverride
+  effectiveCapacity effectivePriceNote
+  inheritedCapacity inheritedPriceNote
+  overridden spotsRemaining approvedCount
+  needsReview reviewReason
+  sourceKind sourceTitle
+  eventType { id name slug color }
+  venue { id name }
+`
+
+export type AdminBlocksData = {
+  admin: { timeBlocks: AdminTimeBlock[]; blocksNeedingReview: AdminTimeBlock[] }
+}
+export type AdminBlocksVars = { from: string; to: string }
+
+export const ADMIN_BLOCKS_QUERY = gql`
+  query AdminBlocks($from: ISO8601DateTime!, $to: ISO8601DateTime!) {
+    admin {
+      timeBlocks(from: $from, to: $to) {
+        ${ADMIN_BLOCK_FIELDS}
+      }
+      blocksNeedingReview {
+        ${ADMIN_BLOCK_FIELDS}
+      }
+    }
+  }
+`
+
+export type UpdateBlockData = {
+  updateTimeBlock: { timeBlock: AdminTimeBlock | null; errors: FieldError[] } | null
+}
+
+export const UPDATE_BLOCK_MUTATION = gql`
+  mutation UpdateTimeBlock(
+    $id: ID!, $status: String, $capacity: Int, $priceNote: String,
+    $resetCapacity: Boolean, $resetPriceNote: Boolean, $clearReview: Boolean
+  ) {
+    updateTimeBlock(input: {
+      id: $id, status: $status, capacity: $capacity, priceNote: $priceNote,
+      resetCapacity: $resetCapacity, resetPriceNote: $resetPriceNote, clearReview: $clearReview
+    }) {
+      timeBlock { ${ADMIN_BLOCK_FIELDS} }
+      errors { field messages }
+    }
+  }
+`
+
+export type MaterializeData = {
+  materializeTimeBlocks: {
+    created: number
+    updated: number
+    removed: number
+    flagged: number
+  } | null
+}
+
+export const MATERIALIZE_MUTATION = gql`
+  mutation Materialize {
+    materializeTimeBlocks(input: {}) {
+      created
+      updated
+      removed
+      flagged
     }
   }
 `
