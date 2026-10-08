@@ -19,27 +19,69 @@ person. Nothing here collects a card number.
 ## Running it
 
 Everything runs in Docker on `localhost`. There is no domain yet, so there is no
-TLS and no deploy target.
+TLS and no deploy target. The only thing you need installed is Docker with the
+Compose plugin (Docker Desktop on a Mac) — Ruby, Node, and Postgres all live in
+the containers.
+
+### First run
 
 ```bash
+# 1. Create your .env from the template.
 cp .env.example .env
-# Set DEVISE_JWT_SECRET_KEY — the stack refuses to start without one:
-#   docker compose run --rm api bin/rails secret
 
+# 2. Generate a JWT signing key and paste it into .env as DEVISE_JWT_SECRET_KEY.
+#    The stack refuses to start without one.
+docker compose run --rm api bin/rails secret
+
+# 3. Build the images and start everything. Leave this running.
 docker compose up --build
+
+# 4. In a second terminal, once the api logs "Listening on http://0.0.0.0:3000":
 docker compose exec api bin/rails db:seed
 ```
+
+You do not need to create or migrate the database yourself — the `api`
+container runs `db:prepare` on every boot. Seeding is safe to repeat, and never
+resets a password Katrina has changed.
+
+Then open:
 
 | | |
 |---|---|
 | http://localhost:3001 | the site |
-| http://localhost:3001/admin | admin (credentials from `.env`) |
+| http://localhost:3001/admin | admin — log in with `KATRINA_EMAIL` / `KATRINA_PASSWORD` from `.env` |
 | http://localhost:3000/graphql | the API |
+| http://localhost:3000/up | API health check |
 | http://localhost:8025 | Mailpit — catches all outbound mail |
 
 Seeds create Katrina's account, the three pages, a realistic month of events,
 and the slots behind them. **The schedule is invented placeholder data** — the
 shapes are right, the days and prices are not.
+
+### Day to day
+
+```bash
+docker compose up             # start (add -d to run in the background)
+docker compose down           # stop, keeping the database
+docker compose down -v        # stop and wipe every volume — database, uploads, caches
+docker compose up --build     # after changing a Dockerfile, Gemfile, or package.json
+```
+
+Source is bind-mounted into both `api` and `frontend`, so code changes show up
+without a rebuild: Rails reloads per request, and esbuild rebuilds and
+live-reloads the browser.
+
+### If localhost will not load
+
+- **Port already in use.** The stack publishes `3000`, `3001`, `1025`, and
+  `8025`. Stop whatever else holds them (`lsof -i :3000`), or change the left
+  side of the mapping in `docker-compose.yml`. If you move the API off `3000`,
+  update `API_BASE_URL` in `.env` to match; if you move the site off `3001`,
+  update `CORS_ORIGINS`.
+- **`set DEVISE_JWT_SECRET_KEY in .env`.** Compose could not find the key —
+  check `.env` exists in the repo root and the line is not commented out.
+- **The site loads but shows no data.** The API is still booting, or the seeds
+  have not run. `docker compose logs -f api` shows which.
 
 ### The containers
 
